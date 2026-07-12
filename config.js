@@ -1,0 +1,3 @@
+// config.js
+window.TELEGRAM_BOT_TOKEN = '8796354639:AAEBJapckHV1UGrG0FfgyWkoWqtE4P1wCxw';
+window.TELEGRAM_CHAT_ID = '5357985916';
